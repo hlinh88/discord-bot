@@ -1,2 +1,7 @@
 def get_response(user_input: str) -> str:
-    raise NotImplementedError("No responses")
+    lowered: str = user_input.lower()
+
+    if 'nam vu' in lowered:
+        return "TatcataiNamVu"
+    else:
+        return "Deo hieu"

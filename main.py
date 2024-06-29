@@ -1,16 +1,34 @@
 from typing import Final
-import os
+import os, asyncio
 from dotenv import load_dotenv
-from discord import Intents, Client, Message
+import discord
+from discord import Message
+import yt_dlp
+from discord.ext import commands
 from responses import get_response
+
+from help_cog import help_cog
+from music_cog import music_cog
 
 # Load discord token
 load_dotenv()
 TOKEN: Final[str] = os.getenv('DISCORD_TOKEN')
 
-intents: Intents = Intents.default()
+intents = discord.Intents.default()
 intents.message_content = True
-client: Client = Client(intents=intents)
+client = discord.Client(intents=intents)
+
+intents_music = discord.Intents.all()
+bot = commands.Bot(command_prefix='/', intents=intents_music)
+
+bot.remove_command('help')
+
+
+async def main_music():
+    async with bot:
+        await bot.add_cog(help_cog(bot))
+        await bot.add_cog(music_cog(bot))
+        await bot.start(TOKEN)
 
 
 async def send_message(message: Message, user_message: str) -> None:
@@ -21,8 +39,9 @@ async def send_message(message: Message, user_message: str) -> None:
         user_message = user_message[1:]
 
     try:
-        response: str = get_response(user_message)
-        await message.author.send(response) if is_private else await message.channel.send(response)
+        response: str = get_response(user_message, str(message.author))
+        if response != "":
+            await message.author.send(response) if is_private else await message.channel.send(response)
     except Exception as e:
         print(e)
 
@@ -50,4 +69,5 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main_music())
+    # main()
